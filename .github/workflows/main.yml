@@ -122,7 +122,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const prep_plan = fs.readFileSync('prep_plan.txt', 'utf8');
+            const prep_plan = fs.readFileSync('./yc_prep/prep_plan.txt', 'utf8');
             const body = `## Terraform Plan
 
             <details>
@@ -303,7 +303,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const infra_plan = fs.readFileSync('infra_plan.txt', 'utf8');
+            const infra_plan = fs.readFileSync('./yc_infra/infra_plan.txt', 'utf8');
             const body = `## Terraform Plan
 
             <details>
