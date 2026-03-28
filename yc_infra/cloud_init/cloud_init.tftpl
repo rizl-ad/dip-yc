@@ -1,0 +1,23 @@
+#cloud-config
+users:
+- name: ${user_name}
+  groups: sudo
+  shell: /bin/bash
+  sudo: 'ALL=(ALL) NOPASSWD:ALL'
+  ssh_authorized_keys:
+  - ${pub_ssh_key}
+package_update: true
+package_upgrade: false
+%{if files != null}
+write_files:
+%{for file in files ~}
+- content: |
+    ${indent(4, file.content)}
+  path: ${file.path}
+  permissions: '${file.permissions}'
+%{endfor ~}
+%{endif}
+runcmd:
+%{for i in run_cmd ~}
+  - ${i}
+%{endfor ~}

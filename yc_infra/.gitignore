@@ -1,0 +1,13 @@
+.terraform/
+.aws/
+.env/
+.yc/
+file/
+
+*.tfstate
+*.tfstate.backup
+
+*.tfvars
+.secrets
+
+ansible_playbook.tf
