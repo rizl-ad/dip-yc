@@ -88,12 +88,13 @@ jobs:
           terraform_version: "1.13.0"
 
       - name: Terraform init
-        run: terraform init \
-          -backend-config="endpoint=${TF_BACKEND_S3}" \
-          -backend-config="dynamodb_endpoint=${YC_PREP_BACKEND_DB}" \
-          -backend-config="dynamodb_table=${YC_PREP_BACKEND_TABLE}" \
-          -backend-config="bucket=${YC_PREP_BACKEND_BUCKET}" \
-          -backend-config="key=${YC_PREP_BACKEND_KEY}" \
+        run: |
+          terraform init
+          -backend-config="endpoint=${TF_BACKEND_S3}"
+          -backend-config="dynamodb_endpoint=${YC_PREP_BACKEND_DB}"
+          -backend-config="dynamodb_table=${YC_PREP_BACKEND_TABLE}"
+          -backend-config="bucket=${YC_PREP_BACKEND_BUCKET}"
+          -backend-config="key=${YC_PREP_BACKEND_KEY}"
           -input=false
 
       - name: Terraform format check
@@ -179,7 +180,8 @@ jobs:
           terraform_version: "1.13.0"
 
       - name: Terraform init
-        run: terraform init \
+        run: |
+          terraform init \
           -backend-config="endpoint=${TF_BACKEND_S3}" \
           -backend-config="dynamodb_endpoint=${YC_PREP_BACKEND_DB}" \
           -backend-config="dynamodb_table=${YC_PREP_BACKEND_TABLE}" \
@@ -207,7 +209,8 @@ jobs:
     name: YC-infra project plan
     needs: [ detect-changes, prepare-apply ]
     if: |
-      always() && needs.detect-changes.result == 'success' && 
+      always() && needs.detect-changes.result == 'success' &&
+      (needs.prepare-plan.result == 'success' || needs.prepare-plan.result == 'skipped') &&
       (
         (github.event_name == 'workflow_dispatch' && github.event.inputs.run_yc_infra == 'true') ||
         (
@@ -227,6 +230,9 @@ jobs:
       AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
 
     steps:
+      - name: Clone repository on runner
+        uses: actions/checkout@v4
+      
       - name: Check required files
         run: |
           set -euo pipefail
@@ -245,9 +251,6 @@ jobs:
           check_file "${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}"
           check_file "${{ fromJSON(vars.YC_INFRA_VARS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}"
           echo "The required files were found."
-
-      - name: Clone repository on runner
-        uses: actions/checkout@v4
 
       - name: Create plugin cache dir
         run: mkdir -p "${TF_PLUGIN_CACHE_DIR}"
