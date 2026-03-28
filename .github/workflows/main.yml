@@ -90,9 +90,9 @@ jobs:
       - name: Terraform init
         run: |
           terraform init \
-          -backend-config="endpoint=${TF_BACKEND_S3}" \
-          -backend-config="dynamodb_endpoint=${YC_PREP_BACKEND_DB}" \
-          -backend-config="dynamodb_table=${YC_PREP_BACKEND_TABLE}" \
+          -backend-config="endpoints.s3=${TF_BACKEND_S3}" \
+          -backend-config="endpoints.dynamodb=${YC_PREP_BACKEND_DB}" \
+          -backend-config="use_lockfile=${YC_PREP_BACKEND_TABLE}" \
           -backend-config="bucket=${YC_PREP_BACKEND_BUCKET}" \
           -backend-config="key=${YC_PREP_BACKEND_KEY}" \
           -input=false
@@ -182,9 +182,9 @@ jobs:
       - name: Terraform init
         run: |
           terraform init \
-          -backend-config="endpoint=${TF_BACKEND_S3}" \
-          -backend-config="dynamodb_endpoint=${YC_PREP_BACKEND_DB}" \
-          -backend-config="dynamodb_table=${YC_PREP_BACKEND_TABLE}" \
+          -backend-config="endpoints.s3=${TF_BACKEND_S3}" \
+          -backend-config="endpoints.dynamodb=${YC_PREP_BACKEND_DB}" \
+          -backend-config="use_lockfile=${YC_PREP_BACKEND_TABLE}" \
           -backend-config="bucket=${YC_PREP_BACKEND_BUCKET}" \
           -backend-config="key=${YC_PREP_BACKEND_KEY}" \
           -input=false
