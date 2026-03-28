@@ -114,4 +114,3 @@ module "variables_file" {
   content_type = var.vars_file.content_type
   object_key = "${var.vars_file.dir_path}/${var.vars_file.name}"
 }
-
