@@ -1,25 +1,25 @@
 variable "allow_zonal_shift" {
-  type = bool
+  type    = bool
   default = null
 }
 
 variable "description" {
-  type = string
+  type    = string
   default = null
 }
 
 variable "folder_id" {
-  type = string
+  type    = string
   default = null
 }
 
 variable "labels" {
-  type = map(string)
+  type    = map(string)
   default = null
 }
 
 variable "name" {
-  type = string
+  type    = string
   default = null
 }
 
@@ -28,12 +28,12 @@ variable "network_id" {
 }
 
 variable "region_id" {
-  type = string
+  type    = string
   default = null
 }
 
 variable "security_group_ids" {
-  type = set(string)
+  type    = set(string)
   default = null
 }
 
@@ -41,15 +41,15 @@ variable "allocation_policy" {
   type = object({
     location = list(object({
       disable_traffic = optional(bool)
-      subnet_id = string
-      zone_id = string
+      subnet_id       = string
+      zone_id         = string
     }))
   })
 }
 
 variable "auto_scale_policy" {
   type = object({
-    max_size = optional(number)
+    max_size      = optional(number)
     min_zone_size = optional(number)
   })
   default = null
@@ -68,15 +68,15 @@ variable "listener" {
           address = optional(string)
         }))
         internal_ipv4_address = optional(object({
-          address = optional(string)
+          address   = optional(string)
           subnet_id = optional(string)
         }))
       }))
     }))
     http = optional(object({
       handler = optional(object({
-        allow_http10 = optional(bool)
-        http_router_id = optional(string)
+        allow_http10       = optional(bool)
+        http_router_id     = optional(string)
         rewrite_request_id = optional(bool)
         http2_options = optional(object({
           max_concurrent_streams = optional(number)
@@ -89,15 +89,15 @@ variable "listener" {
     stream = optional(object({
       handler = optional(object({
         backend_group_id = optional(string)
-        idle_timeout = optional(string)
+        idle_timeout     = optional(string)
       }))
     }))
     tls = optional(object({
       default_handler = optional(object({
         certificate_ids = set(string)
         http_handler = optional(object({
-          allow_http10 = optional(bool)
-          http_router_id = optional(string)
+          allow_http10       = optional(bool)
+          http_router_id     = optional(string)
           rewrite_request_id = optional(bool)
           http2_options = optional(object({
             max_concurrent_streams = optional(number)
@@ -105,17 +105,17 @@ variable "listener" {
         }))
         stream_handler = optional(object({
           backend_group_id = optional(string)
-          idle_timeout = optional(string)
+          idle_timeout     = optional(string)
         }))
       }))
       sni_handler = optional(list(object({
-        name = string
+        name         = string
         server_names = set(string)
         handler = optional(object({
           certificate_ids = set(string)
           http_handler = optional(object({
-            allow_http10 = optional(bool)
-            http_router_id = optional(string)
+            allow_http10       = optional(bool)
+            http_router_id     = optional(string)
             rewrite_request_id = optional(bool)
             http2_options = optional(object({
               max_concurrent_streams = optional(number)
@@ -123,7 +123,7 @@ variable "listener" {
           }))
           stream_handler = optional(object({
             backend_group_id = optional(string)
-            idle_timeout = optional(string)
+            idle_timeout     = optional(string)
           }))
         }))
       })))
@@ -167,13 +167,13 @@ variable "listener" {
 
 variable "log_options" {
   type = object({
-    disable = optional(bool)
+    disable      = optional(bool)
     log_group_id = optional(string)
     discard_rule = optional(list(object({
-      discard_percent = optional(number)
-      grpc_codes = optional(list(string))
+      discard_percent     = optional(number)
+      grpc_codes          = optional(list(string))
       http_code_intervals = optional(list(string))
-      http_codes = optional(list(number))
+      http_codes          = optional(list(number))
     })))
   })
   default = null

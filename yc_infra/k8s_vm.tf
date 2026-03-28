@@ -1,13 +1,13 @@
 module "k8s_master" {
-  source = "./vm/vm_group"
+  source             = "./vm/vm_group"
   service_account_id = var.service_account_id
-  labels = var.k8s.master.labels
-  name = var.k8s.master.name
+  labels             = var.k8s.master.labels
+  name               = var.k8s.master.name
   allocation_policy = {
-    zones = [ for subnet in module.vpc_subnet.subnets : subnet.zone if can(regex("^private", subnet.name)) ]
+    zones = [for subnet in module.vpc_subnet.subnets : subnet.zone if can(regex("^private", subnet.name))]
   }
   deploy_policy = {
-    max_expansion = var.k8s.master.deploy_policy.max_expansion
+    max_expansion   = var.k8s.master.deploy_policy.max_expansion
     max_unavailable = var.k8s.master.deploy_policy.max_unavailable
     # startup_duration = var.k8s.master.deploy_policy.startup_duration
     strategy = local.k8s_deploy_policy_strategy.master
@@ -18,15 +18,15 @@ module "k8s_master" {
     }
     resources = {
       core_fraction = var.k8s.master.instance_template.resources.core_fraction
-      cores = var.k8s.master.instance_template.resources.cores
-      memory = var.k8s.master.instance_template.resources.memory
+      cores         = var.k8s.master.instance_template.resources.cores
+      memory        = var.k8s.master.instance_template.resources.memory
     }
     network_interface = [{
-      subnet_ids = [ for subnet in module.vpc_subnet.subnets : subnet.id if can(regex("^private", subnet.name)) ]
+      subnet_ids = [for subnet in module.vpc_subnet.subnets : subnet.id if can(regex("^private", subnet.name))]
     }]
-    name = var.k8s.master.name
+    name     = var.k8s.master.name
     hostname = var.k8s.master.name
-    labels = var.k8s.master.labels
+    labels   = var.k8s.master.labels
     metadata = {
       user-data = module.cloud_init_default.content
     }
@@ -47,8 +47,8 @@ module "k8s_master" {
   }
   health_check = {
     healthy_threshold = var.k8s.master.health_check.healthy_threshold
-    interval = var.k8s.master.health_check.interval
-    timeout = var.k8s.master.health_check.timeout
+    interval          = var.k8s.master.health_check.interval
+    timeout           = var.k8s.master.health_check.timeout
     tcp_options = {
       port = var.k8s.master.health_check.port
     }
@@ -59,15 +59,15 @@ module "k8s_master" {
 }
 
 module "k8s_worker" {
-  source = "./vm/vm_group"
+  source             = "./vm/vm_group"
   service_account_id = var.service_account_id
-  labels = var.k8s.worker.labels
-  name = var.k8s.worker.name
+  labels             = var.k8s.worker.labels
+  name               = var.k8s.worker.name
   allocation_policy = {
-    zones = [ for subnet in module.vpc_subnet.subnets : subnet.zone if can(regex("^private", subnet.name)) ]
+    zones = [for subnet in module.vpc_subnet.subnets : subnet.zone if can(regex("^private", subnet.name))]
   }
   deploy_policy = {
-    max_expansion = var.k8s.worker.deploy_policy.max_expansion
+    max_expansion   = var.k8s.worker.deploy_policy.max_expansion
     max_unavailable = var.k8s.worker.deploy_policy.max_unavailable
     # startup_duration = var.k8s.worker.deploy_policy.startup_duration
     strategy = local.k8s_deploy_policy_strategy.worker
@@ -78,15 +78,15 @@ module "k8s_worker" {
     }
     resources = {
       core_fraction = var.k8s.worker.instance_template.resources.core_fraction
-      cores = var.k8s.worker.instance_template.resources.cores
-      memory = var.k8s.worker.instance_template.resources.memory
+      cores         = var.k8s.worker.instance_template.resources.cores
+      memory        = var.k8s.worker.instance_template.resources.memory
     }
     network_interface = [{
-      subnet_ids = [ for subnet in module.vpc_subnet.subnets : subnet.id if can(regex("^private", subnet.name)) ]
+      subnet_ids = [for subnet in module.vpc_subnet.subnets : subnet.id if can(regex("^private", subnet.name))]
     }]
-    name = var.k8s.worker.name
+    name     = var.k8s.worker.name
     hostname = var.k8s.worker.name
-    labels = var.k8s.worker.labels
+    labels   = var.k8s.worker.labels
     metadata = {
       user-data = module.cloud_init_default.content
     }
@@ -107,8 +107,8 @@ module "k8s_worker" {
   }
   health_check = {
     healthy_threshold = var.k8s.worker.health_check.healthy_threshold
-    interval = var.k8s.worker.health_check.interval
-    timeout = var.k8s.worker.health_check.timeout
+    interval          = var.k8s.worker.health_check.interval
+    timeout           = var.k8s.worker.health_check.timeout
     tcp_options = {
       port = var.k8s.worker.health_check.port
     }

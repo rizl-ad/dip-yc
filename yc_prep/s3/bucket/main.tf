@@ -1,14 +1,14 @@
 resource "yandex_storage_bucket" "bucket" {
-  bucket = var.bucket_name
-  max_size = var.max_size
+  bucket                = var.bucket_name
+  max_size              = var.max_size
   default_storage_class = var.storage_class
-  tags = var.tags
-  website_domain = var.website_domain
-  website_endpoint = var.website_endpoint
+  tags                  = var.tags
+  website_domain        = var.website_domain
+  website_endpoint      = var.website_endpoint
 
   anonymous_access_flags {
-    read = var.access_read_bucket_objects
-    list = var.access_list_bucket_objects
+    read        = var.access_read_bucket_objects
+    list        = var.access_list_bucket_objects
     config_read = var.acess_read_config_bucket
   }
 
@@ -26,7 +26,7 @@ resource "yandex_storage_bucket" "bucket" {
       rule {
         apply_server_side_encryption_by_default {
           kms_master_key_id = var.kms_master_key_id
-          sse_algorithm = var.kms_master_key_id != null ? "aws:kms" : null
+          sse_algorithm     = var.kms_master_key_id != null ? "aws:kms" : null
         }
       }
     }
@@ -39,10 +39,10 @@ resource "yandex_storage_bucket" "bucket" {
   dynamic "website" {
     for_each = var.website != null ? [var.website] : []
     content {
-      error_document = website.value.error_document
-      index_document = website.value.index_document
+      error_document           = website.value.error_document
+      index_document           = website.value.index_document
       redirect_all_requests_to = website.value.redirect_all_requests_to
-      routing_rules = website.value.redirect_all_requests_to
+      routing_rules            = website.value.redirect_all_requests_to
     }
   }
 
