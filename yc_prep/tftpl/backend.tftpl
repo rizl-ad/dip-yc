@@ -10,7 +10,7 @@ terraform {
     }
 
     dynamodb_table = "${dynamodb_teble_name}"
-    
+
     shared_credentials_files = ["${aws_access_file_path}"]
     profile                  = "${profile}"
     region                   = "${region}"
