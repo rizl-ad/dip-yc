@@ -114,8 +114,3 @@ module "variables_file" {
   content_type = var.vars_file.content_type
   object_key = "${var.vars_file.dir_path}/${var.vars_file.name}"
 }
-
-# output "sa_key_file_url" {
-#   value = "https://storage.yandexcloud.net/${module.bucket.bucket}/${module.sa_key_file.key}"
-#   sensitive = true
-# }
