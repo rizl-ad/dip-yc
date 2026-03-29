@@ -417,6 +417,6 @@ jobs:
           client-payload: |
             {
               "bucket": "${{ fromJSON(vars.YC_INFRA_BUCKET).name }}",
-              "endpoint": "${{ vars.TF_BACKEND_S3 }}"
+              "endpoint": "${{ vars.TF_BACKEND_S3 }}",
               "inv-key": "${{ fromJSON(vars.ANSIBLE_INVENTORY).dir_path }}/${{ fromJSON(vars.ANSIBLE_INVENTORY).name }}"
             }

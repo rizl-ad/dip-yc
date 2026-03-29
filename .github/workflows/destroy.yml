@@ -36,8 +36,14 @@ jobs:
       - name: Create plugin cache dir
         run: mkdir -p "${TF_PLUGIN_CACHE_DIR}"
 
-      - name: Download infrastructure configs from S3
+      - name: Download infrastructure project configs files
         run: |
+          mkdir -p "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}"
+          mkdir -p "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" \
+            "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" \
+            "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
           aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" \
             "${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
           aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" \
