@@ -6,7 +6,7 @@ on:
       confirm_destroy:
         description: 'Enter "DESTROY" to confirm deletion'
         required: true
-        default: 'NO'
+        default: 'no destroy'
       destroy_prep:
         description: 'Destroy yc-prep project'
         type: boolean
