@@ -396,7 +396,7 @@ jobs:
 
   k8s:
     name: Deploy Kubernetes
-    needs: infra-plan
+    needs: infra-apply
     if: needs.infra-apply.result == 'success'
     runs-on: ubuntu-24.04
 
