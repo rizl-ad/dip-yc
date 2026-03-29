@@ -51,9 +51,12 @@ jobs:
   prepare-plan:
     name: YC-prep project plan
     needs: detect-changes
+    # if: |
+    #   (github.event_name == 'workflow_dispatch' && github.event.inputs.run_yc_prep == 'true') ||
+    #   (github.event_name == 'pull_request' && needs.detect-changes.outputs.yc-prep == 'true')
     if: |
       (github.event_name == 'workflow_dispatch' && github.event.inputs.run_yc_prep == 'true') ||
-      (github.event_name == 'pull_request' && needs.detect-changes.outputs.yc-prep == 'true')
+      (github.event_name == 'pull_request' && fromJSON(needs.detect-changes.outputs.yc-prep))
     runs-on: ubuntu-24.04
     defaults:
       run:
@@ -208,14 +211,26 @@ jobs:
   infra-plan:
     name: YC-infra project plan
     needs: [ detect-changes, prepare-apply ]
+    # if: |
+    #   always() && needs.detect-changes.result == 'success' &&
+    #   (needs.prepare-plan.result == 'success' || needs.prepare-plan.result == 'skipped') &&
+    #   (
+    #     (github.event_name == 'workflow_dispatch' && github.event.inputs.run_yc_infra == 'true') ||
+    #     (
+    #       github.event_name == 'pull_request' &&
+    #       (needs.detect-changes.outputs.yc-infra == 'true' || needs.detect-changes.outputs.yc-prep == 'true') &&
+    #       (needs.prepare-apply.result == 'success' || needs.prepare-apply.result == 'skipped')
+    #     )
+    #   )
     if: |
-      always() && needs.detect-changes.result == 'success' &&
+      always() && 
+      needs.detect-changes.result == 'success' &&
       (needs.prepare-plan.result == 'success' || needs.prepare-plan.result == 'skipped') &&
       (
         (github.event_name == 'workflow_dispatch' && github.event.inputs.run_yc_infra == 'true') ||
         (
           github.event_name == 'pull_request' &&
-          (needs.detect-changes.outputs.yc-infra == 'true' || needs.detect-changes.outputs.yc-prep == 'true') &&
+          (fromJSON(needs.detect-changes.outputs.yc-infra) || fromJSON(needs.detect-changes.outputs.yc-prep)) &&
           (needs.prepare-apply.result == 'success' || needs.prepare-apply.result == 'skipped')
         )
       )
