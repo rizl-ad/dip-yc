@@ -70,7 +70,7 @@ jobs:
         run: terraform init -input=false
 
       - name: Terraform unlock
-        run: terraform force-unlock ${{ github.event.inputs.unlock_id_yc_infra }} -force
+        run: terraform force-unlock -force ${{ github.event.inputs.unlock_id_yc_infra }}
 
   unlock-prep:
     name: Unlock YC-prep tfstate
@@ -105,4 +105,4 @@ jobs:
             -input=false
 
       - name: Terraform destroy
-        run: terraform force-unlock ${{ github.event.inputs.unlock_id_yc_prep }} -force
+        run: terraform force-unlock -force ${{ github.event.inputs.unlock_id_yc_prep }}
