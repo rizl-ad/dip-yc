@@ -367,10 +367,14 @@ jobs:
         run: |
           mkdir -p "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}"
           mkdir -p "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}"
-          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
-          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
-          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
-          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" \
+            "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" \
+            "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" \
+            "${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" \
+            "${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
 
       - name: Terraform init
         run: terraform init -input=false
@@ -389,3 +393,30 @@ jobs:
         uses: geekyeggo/delete-artifact@v5
         with:
           name: terraform-infra-plan
+
+  k8s:
+    name: Deploy Kubernetes
+    needs: infra-plan
+    if: needs.infra-apply.result == 'success'
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Generate token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Remote workflow call
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ steps.generate_token.outputs.token }}
+          repository: rizl-ad/dip-k8s
+          event-type: deploy-k8s
+          client-payload: |
+            {
+              "bucket": "${{ fromJSON(vars.YC_INFRA_BUCKET).name }}",
+              "endpoint": "${{ vars.TF_BACKEND_S3 }}"
+              "inv-key": "${{ fromJSON(vars.ANSIBLE_INVENTORY).dir_path }}/${{ fromJSON(vars.ANSIBLE_INVENTORY).name }}"
+            }
