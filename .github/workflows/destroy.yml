@@ -13,13 +13,18 @@ on:
         default: false
 
 env:
-  TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform-plugin-cache
-  TF_VAR_cloud_id: ${{ vars.YC_CLOUD_ID }}
-  TF_VAR_folder_id: ${{ vars.YC_FOLDER_ID }}
-  TF_BACKEND_S3: ${{ vars.TF_BACKEND_S3 }}
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/terraform-plugin-cache
+  TF_VAR_cloud_id: ${{ vars.YC_CLOUD_ID }}
+  TF_VAR_folder_id: ${{ vars.YC_FOLDER_ID }}
+  TF_VAR_sa_key_file: ${{ vars.YC_INFRA_SA_KEY_FILE }}  # переменная с аттрибутами файла, не файл с ключами
+  TF_VAR_aws_access_file: ${{ vars.YC_INFRA_AWS_ACCESS_FILE }}  # переменная с аттрибутами файла, не файл с ключами
+  TF_VAR_bucket: ${{ vars.YC_INFRA_BUCKET }}
+  TF_VAR_backend_file: ${{ vars.YC_INFRA_BACKEND_FILE }}
+  TF_VAR_vars_file: ${{ vars.YC_INFRA_VARS_FILE }}
+  TF_BACKEND_S3: ${{ vars.TF_BACKEND_S3 }}
 
 jobs:
   destroy-infra:
@@ -29,6 +34,13 @@ jobs:
     defaults:
       run:
         working-directory: ./yc_infra
+
+    env:
+      TF_VAR_vm_user_name: ${{ vars.VM_USER_NAME }}
+      TF_VAR_ssh_key_path: ${{ vars.SSH_KEY_PATH }}
+      TF_VAR_pub_ssh_key: ${{ secrets.PUB_SSH_KEY }}
+      TF_VAR_ansible_inventory: ${{ vars.ANSIBLE_INVENTORY }}
+
     steps:
       - name: Clone repository
         uses: actions/checkout@v4
