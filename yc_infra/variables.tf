@@ -59,6 +59,8 @@ locals {
     { name = "private-d", zone = "ru-central1-d", v4_cidr = ["10.10.22.0/24"], route_table_id = module.to_nat_instance_route_table.id },
   ]
 
+  github_ipv4_cidrs = chunklist(data.github_ip_ranges.actions_ips.actions_ipv4, 50)
+
   bastion_sg = {
     name = "bastion-sg"
     egress = [
@@ -75,7 +77,7 @@ locals {
         description    = "from Internet to bastion"
         protocol       = "TCP"
         port           = var.bastion.ssh_custom_port
-        v4_cidr_blocks = concat(var.bastion_access_ips, data.github_ip_ranges.actions_ips.actions_ipv4)
+        v4_cidr_blocks = var.bastion_access_ips
       },
       {
         description    = "from internal subnets to bastion"
@@ -83,7 +85,13 @@ locals {
         from_port      = 0
         to_port        = 65535
         v4_cidr_blocks = flatten(local.subnets[*].v4_cidr)
-      }
+      },
+      [for cidrs_50 in local.github_ipv4_cidrs : {
+        description    = "from GitHub to bastion"
+        protocol       = "TCP"
+        port           = var.bastion.ssh_custom_port
+        v4_cidr_blocks = cidrs_50
+      }]
     ]
   }
 
