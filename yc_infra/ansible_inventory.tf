@@ -47,7 +47,7 @@ module "ansible_inventory_file" {
             } if contains(values(vm.labels), label)
           ]
           vars = {
-            ansible_ssh_common_args = "-o ProxyJump=${var.vm_user_name}@${local.bastion_ip_address[0]}:${var.bastion.ssh_custom_port}"
+            ansible_ssh_common_args = "-o ProxyJump=${var.vm_user_name}@${local.bastion_ip_address[0]}:${var.bastion_access.ssh_custom_port}"
           }
         }
       }
