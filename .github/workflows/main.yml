@@ -412,7 +412,8 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ steps.generate_token.outputs.token }}
-          repository: rizl-ad/dip-k8s
+          owner: rizl-ad
+          repositories: dip-k8s
           event-type: deploy-k8s
           client-payload: |
             {
