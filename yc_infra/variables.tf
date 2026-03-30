@@ -44,8 +44,11 @@ variable "network_name" {
   default = "diplom-vpc"
 }
 
-variable "bastion_access_ips" {
-  type      = list(string)
+variable "bastion_access" {
+  type = object({
+    ips             = list(string)
+    ssh_custom_port = number
+  })
   sensitive = true
 }
 
@@ -74,8 +77,8 @@ locals {
       {
         description    = "from Internet to bastion"
         protocol       = "TCP"
-        port           = var.bastion.ssh_custom_port
-        v4_cidr_blocks = var.bastion_access_ips
+        port           = var.bastion_access.ssh_custom_port
+        v4_cidr_blocks = var.bastion_access.ips
       },
       {
         description    = "from internal subnets to bastion"
@@ -111,7 +114,7 @@ locals {
 
   bastion_cloud_init_files = [
     {
-      content     = "Port ${var.bastion.ssh_custom_port}"
+      content     = "Port ${var.bastion_access.ssh_custom_port}"
       path        = "/etc/ssh/sshd_config.d/custom_port.conf"
       permissions = "0644"
     }
@@ -136,7 +139,6 @@ variable "bastion" {
     name                      = optional(string, "bastion")
     labels                    = optional(map(string))
     public_ip                 = optional(bool, true)
-    ssh_custom_port           = optional(number, 54231)
     cloud_init_cmd = optional(list(string), [
       "sudo systemctl daemon-reload",
       "sudo systemctl restart ssh.socket",

@@ -232,7 +232,7 @@ jobs:
       TF_VAR_ssh_key_path: ${{ vars.SSH_KEY_PATH }}
       TF_VAR_pub_ssh_key: ${{ secrets.PUB_SSH_KEY }}
       TF_VAR_ansible_inventory: ${{ vars.ANSIBLE_INVENTORY }}
-      TF_VAR_bastion_access_ips: ${{ vars.BASTION_ACCESS_IPS }}
+      TF_VAR_bastion_access: ${{ vars.BASTION_ACCESS }}
 
     steps:
       - name: Clone repository on runner
@@ -345,7 +345,7 @@ jobs:
       TF_VAR_ssh_key_path: ${{ vars.SSH_KEY_PATH }}
       TF_VAR_pub_ssh_key: ${{ secrets.PUB_SSH_KEY }}
       TF_VAR_ansible_inventory: ${{ vars.ANSIBLE_INVENTORY }}
-      TF_VAR_bastion_access_ips: ${{ vars.BASTION_ACCESS_IPS }}
+      TF_VAR_bastion_access: ${{ vars.BASTION_ACCESS }}
 
     steps:
       - name: Clone repository on runner
@@ -424,5 +424,5 @@ jobs:
             {
               "bucket": "${{ fromJSON(vars.YC_INFRA_BUCKET).name }}",
               "endpoint": "${{ vars.TF_BACKEND_S3 }}",
-              "inv-key": "${{ fromJSON(vars.ANSIBLE_INVENTORY).dir_path }}/${{ fromJSON(vars.ANSIBLE_INVENTORY).name }}"
+              "key": "${{ fromJSON(vars.ANSIBLE_INVENTORY).dir_path }}/${{ fromJSON(vars.ANSIBLE_INVENTORY).name }}"
             }
