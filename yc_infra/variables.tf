@@ -45,7 +45,7 @@ variable "network_name" {
 }
 
 variable "bastion_access_ips" {
-  type    = list(string)
+  type      = list(string)
   sensitive = true
 }
 
@@ -143,7 +143,7 @@ variable "bastion" {
       "sudo systemctl restart ssh.service"
     ])
   })
-  default = {}
+  default   = {}
   sensitive = true
 }
 
