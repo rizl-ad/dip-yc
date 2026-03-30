@@ -407,13 +407,16 @@ jobs:
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: |
+            dip-yc
+            dip-k8s
 
       - name: Remote workflow call
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ steps.generate_token.outputs.token }}
-          owner: rizl-ad
-          repositories: dip-k8s
+          repository: rizl-ad/dip-k8s
           event-type: deploy-k8s
           client-payload: |
             {
