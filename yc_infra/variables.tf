@@ -75,7 +75,7 @@ locals {
         description    = "from Internet to bastion"
         protocol       = "TCP"
         port           = var.bastion.ssh_custom_port
-        v4_cidr_blocks = var.bastion_access_ips
+        v4_cidr_blocks = concat(var.bastion_access_ips, data.github_ip_ranges.example.actions_ipv4)
       },
       {
         description    = "from internal subnets to bastion"
