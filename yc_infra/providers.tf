@@ -8,10 +8,6 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = ">=2.7.0"
     }
-    github = {
-      source  = "integrations/github"
-      version = "~> 6.0"
-    }
   }
   required_version = ">=1.13.0"
 }
