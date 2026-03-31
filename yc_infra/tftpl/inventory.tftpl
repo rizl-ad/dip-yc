@@ -21,7 +21,7 @@ all:
 %{ if vms.vars != null ~}
       vars:
 %{ for key, value in vms.vars ~}
-        ${key}: "${value}"
+        ${key}: '${value}'
 %{ endfor ~}
 %{ endif ~}
 %{ endfor ~}
