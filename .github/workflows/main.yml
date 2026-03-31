@@ -420,9 +420,9 @@ jobs:
           token: ${{ steps.generate_token.outputs.token }}
           repository: rizl-ad/dip-k8s
           event-type: deploy-k8s
-          client-payload: |
-            {
-              "bucket": "${{ fromJSON(vars.YC_INFRA_BUCKET).name }}",
-              "endpoint": "${{ vars.TF_BACKEND_S3 }}",
-              "key": "${{ fromJSON(vars.ANSIBLE_INVENTORY).dir_path }}/${{ fromJSON(vars.ANSIBLE_INVENTORY).name }}"
-            }
+          # client-payload: |
+          #   {
+          #     "bucket": "${{ fromJSON(vars.YC_INFRA_BUCKET).name }}",
+          #     "endpoint": "${{ vars.TF_BACKEND_S3 }}",
+          #     "key": "${{ fromJSON(vars.ANSIBLE_INVENTORY).dir_path }}/${{ fromJSON(vars.ANSIBLE_INVENTORY).name }}"
+          #   }
