@@ -48,7 +48,8 @@ module "ansible_inventory_file" {
           ]
           vars = {
             # ansible_ssh_common_args = "-o ProxyJump=${var.vm_user_name}@${local.bastion_ip_address[0]}:${var.bastion_access.ssh_custom_port} -o StrictHostKeyChecking=accept-new"
-            ansible_ssh_common_args = "-o ProxyCommand=\"ssh -W %h:%p -o StrictHostKeyChecking=accept-new ${var.vm_user_name}@${local.bastion_ip_address[0]}:${var.bastion_access.ssh_custom_port}\""
+            ansible_ssh_common_args = "-o StrictHostKeyChecking=accept-new -o ProxyCommand=\"ssh -p ${var.bastion_access.ssh_custom_port} -W %h:%p -o StrictHostKeyChecking=accept-new ${var.vm_user_name}@${local.bastion_ip_address[0]}\""
+
           }
         }
       }
