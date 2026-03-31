@@ -262,7 +262,7 @@ variable "k8s" {
         resources = optional(object({
           cores         = optional(number, 6)
           memory        = optional(number, 6)
-          core_fraction = optional(number, 50)
+          core_fraction = optional(number, 100)
         }))
       }))
       health_check = optional(object({
