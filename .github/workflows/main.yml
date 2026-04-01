@@ -426,4 +426,3 @@ jobs:
           #     "endpoint": "${{ vars.TF_BACKEND_S3 }}",
           #     "key": "${{ fromJSON(vars.ANSIBLE_INVENTORY).dir_path }}/${{ fromJSON(vars.ANSIBLE_INVENTORY).name }}"
           #   }
-
