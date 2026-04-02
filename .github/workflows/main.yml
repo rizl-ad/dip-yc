@@ -68,6 +68,11 @@ jobs:
       tf_var_cloud_id: ${{ steps.repo_vars.outputs.TF_VAR_cloud_id }}
       tf_var_folder_id: ${{ steps.repo_vars.outputs.TF_VAR_folder_id }}
       tf_backend_s3: ${{ steps.repo_vars.outputs.TF_BACKEND_S3 }}
+      tf_var_sa_key_file: ${{ steps.repo_vars.outputs.TF_VAR_sa_key_file }}
+      tf_var_aws_access_file: ${{ steps.repo_vars.outputs.TF_VAR_aws_access_file }}
+      tf_var_bucket: ${{ steps.repo_vars.outputs.TF_VAR_bucket }}
+      tf_var_backend_file: ${{ steps.repo_vars.outputs.TF_VAR_backend_file }}
+      tf_var_vars_file: ${{ steps.repo_vars.outputs.TF_VAR_vars_file }}
 
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -96,14 +101,24 @@ jobs:
           M_TF_VAR_cloud_id=${{ vars.YC_CLOUD_ID }}
           M_TF_VAR_folder_id=${{ vars.YC_FOLDER_ID }}
           M_TF_BACKEND_S3=${{ vars.TF_BACKEND_S3 }}
+          M_TF_VAR_sa_key_file=${{ vars.YC_INFRA_SA_KEY_FILE }}
+          M_TF_VAR_aws_access_file=${{ vars.YC_INFRA_AWS_ACCESS_FILE }}
+          M_TF_VAR_bucket=${{ vars.YC_INFRA_BUCKET }}
+          M_TF_VAR_backend_file=${{ vars.YC_INFRA_BACKEND_FILE }}
+          M_TF_VAR_vars_file=${{ vars.YC_INFRA_VARS_FILE }}
 
-          echo "::add-mask::M_YC_PREP_BACKEND_DB"
-          echo "::add-mask::M_YC_PREP_BACKEND_TABLE"
-          echo "::add-mask::M_YC_PREP_BACKEND_BUCKET"
-          echo "::add-mask::M_YC_PREP_BACKEND_KEY"
-          echo "::add-mask::M_TF_VAR_cloud_id"
-          echo "::add-mask::M_TF_VAR_folder_id"
-          echo "::add-mask::M_TF_BACKEND_S3"
+          echo "::add-mask::$M_YC_PREP_BACKEND_DB"
+          echo "::add-mask::$M_YC_PREP_BACKEND_TABLE"
+          echo "::add-mask::$M_YC_PREP_BACKEND_BUCKET"
+          echo "::add-mask::$M_YC_PREP_BACKEND_KEY"
+          echo "::add-mask::$M_TF_VAR_cloud_id"
+          echo "::add-mask::$M_TF_VAR_folder_id"
+          echo "::add-mask::$M_TF_BACKEND_S3"
+          echo "::add-mask::$M_TF_VAR_sa_key_file"
+          echo "::add-mask::$M_TF_VAR_aws_access_file"
+          echo "::add-mask::$M_TF_VAR_bucket"
+          echo "::add-mask::$M_TF_VAR_backend_file"
+          echo "::add-mask::$M_TF_VAR_vars_file"
 
           echo "YC_PREP_BACKEND_DB=$M_YC_PREP_BACKEND_DB" >> $GITHUB_ENV
           echo "YC_PREP_BACKEND_TABLE=$M_YC_PREP_BACKEND_TABLE" >> $GITHUB_ENV
@@ -112,6 +127,11 @@ jobs:
           echo "TF_VAR_cloud_id=$M_TF_VAR_cloud_id" >> $GITHUB_ENV
           echo "TF_VAR_folder_id=$M_TF_VAR_folder_id" >> $GITHUB_ENV
           echo "TF_BACKEND_S3=$M_TF_BACKEND_S3" >> $GITHUB_ENV
+          echo "TF_VAR_sa_key_file=$M_TF_VAR_sa_key_file" >> $GITHUB_ENV
+          echo "TF_VAR_aws_access_file=$M_TF_VAR_aws_access_file" >> $GITHUB_ENV
+          echo "TF_VAR_bucket=$M_TF_VAR_bucket" >> $GITHUB_ENV
+          echo "TF_VAR_backend_file=$M_TF_VAR_backend_file" >> $GITHUB_ENV
+          echo "TF_VAR_vars_file=$M_TF_VAR_vars_file" >> $GITHUB_ENV
 
       - name: Create plugin cache dir
         run: mkdir -p "${TF_PLUGIN_CACHE_DIR}"
@@ -204,6 +224,11 @@ jobs:
       YC_PREP_BACKEND_BUCKET: ${{ needs.prepare-plan.outputs.yc_prep_backend_bucket }}
       YC_PREP_BACKEND_KEY: ${{ needs.prepare-plan.outputs.yc_prep_backend_key }}
       TF_BACKEND_S3: ${{ needs.prepare-plan.outputs.tf_backend_s3 }}
+      TF_VAR_SA_KEY_FILE: ${{ needs.prepare-plan.outputs.tf_var_sa_key_file }}
+      TF_VAR_AWS_ACCESS_FILE: ${{ needs.prepare-plan.outputs.tf_var_aws_access_file }}
+      TF_VAR_BUCKET: ${{ needs.prepare-plan.outputs.tf_var_bucket }}
+      TF_VAR_BACKEND_FILE: ${{ needs.prepare-plan.outputs.tf_var_backend_file }}
+      TF_VAR_VARS_FILE: ${{ needs.prepare-plan.outputs.tf_var_vars_file }}
 
     environment: review_tfplan
 
@@ -271,11 +296,6 @@ jobs:
         working-directory: ./yc_infra
 
     outputs:
-      tf_var_sa_key_file: ${{ steps.repo_infra_vars.outputs.TF_VAR_sa_key_file }}
-      tf_var_aws_access_file: ${{ steps.repo_infra_vars.outputs.TF_VAR_aws_access_file }}
-      tf_var_bucket: ${{ steps.repo_infra_vars.outputs.TF_VAR_bucket }}
-      tf_var_backend_file: ${{ steps.repo_infra_vars.outputs.TF_VAR_backend_file }}
-      tf_var_vars_file: ${{ steps.repo_infra_vars.outputs.TF_VAR_vars_file }}
       tf_var_ssh_key_path: ${{ steps.repo_infra_vars.outputs.TF_VAR_ssh_key_path }}
       tf_var_ansible_inventory: ${{ steps.repo_infra_vars.outputs.TF_VAR_ansible_inventory }}
       tf_var_bastion_access: ${{ steps.repo_infra_vars.outputs.TF_VAR_bastion_access }}
@@ -287,6 +307,12 @@ jobs:
       TF_VAR_pub_ssh_key: ${{ secrets.PUB_SSH_KEY }}
       TF_VAR_CLOUD_ID: ${{ needs.prepare-plan.outputs.tf_var_cloud_id }}
       TF_VAR_FOLDER_ID: ${{ needs.prepare-plan.outputs.tf_var_folder_id }}
+      TF_BACKEND_S3: ${{ needs.prepare-plan.outputs.tf_backend_s3 }}
+      TF_VAR_SA_KEY_FILE: ${{ needs.prepare-plan.outputs.tf_var_sa_key_file }}
+      TF_VAR_AWS_ACCESS_FILE: ${{ needs.prepare-plan.outputs.tf_var_aws_access_file }}
+      TF_VAR_BUCKET: ${{ needs.prepare-plan.outputs.tf_var_bucket }}
+      TF_VAR_BACKEND_FILE: ${{ needs.prepare-plan.outputs.tf_var_backend_file }}
+      TF_VAR_VARS_FILE: ${{ needs.prepare-plan.outputs.tf_var_vars_file }}
       # TF_VAR_ssh_key_path: ${{ vars.SSH_KEY_PATH }}
       # TF_VAR_ansible_inventory: ${{ vars.ANSIBLE_INVENTORY }}
       # TF_VAR_bastion_access: ${{ vars.BASTION_ACCESS }}
@@ -302,29 +328,14 @@ jobs:
         # TF_VAR_sa_key_file - переменная с аттрибутами файла, не файл с ключами
         # TF_VAR_aws_access_file - переменная с аттрибутами файла, не файл с ключами
         run: |
-          M_TF_VAR_sa_key_file=${{ vars.YC_INFRA_SA_KEY_FILE }}
-          M_TF_VAR_aws_access_file=${{ vars.YC_INFRA_AWS_ACCESS_FILE }}
-          M_TF_VAR_bucket=${{ vars.YC_INFRA_BUCKET }}
-          M_TF_VAR_backend_file=${{ vars.YC_INFRA_BACKEND_FILE }}
-          M_TF_VAR_vars_file=${{ vars.YC_INFRA_VARS_FILE }}
           M_TF_VAR_ssh_key_path=${{ vars.SSH_KEY_PATH }}
           M_TF_VAR_ansible_inventory=${{ vars.ANSIBLE_INVENTORY }}
           M_TF_VAR_bastion_access=${{ vars.BASTION_ACCESS }}
 
-          echo "::add-mask::M_TF_VAR_sa_key_file"
-          echo "::add-mask::M_TF_VAR_aws_access_file"
-          echo "::add-mask::M_TF_VAR_bucket"
-          echo "::add-mask::M_TF_VAR_backend_file"
-          echo "::add-mask::M_TF_VAR_vars_file"
-          echo "::add-mask::M_TF_VAR_ssh_key_path"
-          echo "::add-mask::M_TF_VAR_ansible_inventory"
-          echo "::add-mask::M_TF_VAR_bastion_access"
+          echo "::add-mask::$M_TF_VAR_ssh_key_path"
+          echo "::add-mask::$M_TF_VAR_ansible_inventory"
+          echo "::add-mask::$M_TF_VAR_bastion_access"
 
-          echo "TF_VAR_sa_key_file=$M_TF_VAR_sa_key_file" >> $GITHUB_ENV
-          echo "TF_VAR_aws_access_file=$M_TF_VAR_aws_access_file" >> $GITHUB_ENV
-          echo "TF_VAR_bucket=$M_TF_VAR_bucket" >> $GITHUB_ENV
-          echo "TF_VAR_backend_file=$M_TF_VAR_backend_file" >> $GITHUB_ENV
-          echo "TF_VAR_vars_file=$M_TF_VAR_vars_file" >> $GITHUB_ENV
           echo "TF_VAR_ssh_key_path=$M_TF_VAR_ssh_key_path" >> $GITHUB_ENV
           echo "TF_VAR_ansible_inventory=$M_TF_VAR_ansible_inventory" >> $GITHUB_ENV
           echo "TF_VAR_bastion_access=$M_TF_VAR_bastion_access" >> $GITHUB_ENV
@@ -435,6 +446,12 @@ jobs:
       TF_VAR_pub_ssh_key: ${{ secrets.PUB_SSH_KEY }}
       TF_VAR_CLOUD_ID: ${{ needs.prepare-plan.outputs.tf_var_cloud_id }}
       TF_VAR_FOLDER_ID: ${{ needs.prepare-plan.outputs.tf_var_folder_id }}
+      TF_BACKEND_S3: ${{ needs.prepare-plan.outputs.tf_backend_s3 }}
+      TF_VAR_SA_KEY_FILE: ${{ needs.prepare-plan.outputs.tf_var_sa_key_file }}
+      TF_VAR_AWS_ACCESS_FILE: ${{ needs.prepare-plan.outputs.tf_var_aws_access_file }}
+      TF_VAR_BUCKET: ${{ needs.prepare-plan.outputs.tf_var_bucket }}
+      TF_VAR_BACKEND_FILE: ${{ needs.prepare-plan.outputs.tf_var_backend_file }}
+      TF_VAR_VARS_FILE: ${{ needs.prepare-plan.outputs.tf_var_vars_file }}
       # TF_VAR_ssh_key_path: ${{ vars.SSH_KEY_PATH }}
       # TF_VAR_ansible_inventory: ${{ vars.ANSIBLE_INVENTORY }}
       # TF_VAR_bastion_access: ${{ vars.BASTION_ACCESS }}
