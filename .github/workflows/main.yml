@@ -62,7 +62,7 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      # AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
       TF_VAR_adm_sa_key: ${{ secrets.YC_ADM_SA_KEY }}
       YC_PREP_BACKEND_DB: ${{ fromJSON(secrets.YC_PREP_BACKEND).db }}
       YC_PREP_BACKEND_TABLE: ${{ fromJSON(secrets.YC_PREP_BACKEND).table }}
@@ -152,7 +152,7 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      # AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
       TF_VAR_adm_sa_key: ${{ secrets.YC_ADM_SA_KEY }}
       YC_PREP_BACKEND_DB: ${{ fromJSON(secrets.YC_PREP_BACKEND).db }}
       YC_PREP_BACKEND_TABLE: ${{ fromJSON(secrets.YC_PREP_BACKEND).table }}
@@ -232,7 +232,7 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      # AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
       TF_VAR_vm_user_name: ${{ secrets.VM_USER_NAME }}
       TF_VAR_pub_ssh_key: ${{ secrets.PUB_SSH_KEY }}
       TF_VAR_ssh_key_path: ${{ vars.SSH_KEY_PATH }}
@@ -345,7 +345,7 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      # AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
       TF_VAR_vm_user_name: ${{ secrets.VM_USER_NAME }}
       TF_VAR_pub_ssh_key: ${{ secrets.PUB_SSH_KEY }}
       TF_VAR_ssh_key_path: ${{ vars.SSH_KEY_PATH }}
