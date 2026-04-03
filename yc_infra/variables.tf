@@ -337,17 +337,20 @@ locals {
   bastion_ip_address = module.bastion.network_interface_ip_address
 }
 
-variable "container_registry_name" {
-  type    = string
-  default = "diplom-cr"
-}
-
 variable "ansible_inventory" {
   type = object({
     dir_path        = string
     name            = string
     connection_type = string
     content_type    = string
+  })
+}
+
+variable "container_registry" {
+  type = object({
+    dir_path     = string
+    name         = string
+    content_type = string
   })
 }
 

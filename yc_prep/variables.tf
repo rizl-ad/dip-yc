@@ -25,8 +25,8 @@ variable "sa" {
   type = object({
     name = optional(string, "diplom-sa")
     roles = optional(list(string), [
-      "editor", "container-registry.images.puller", "k8s.clusters.agent",
-      "load-balancer.admin", "vpc.publicAdmin", "k8s.tunnelClusters.agent"
+      "editor", "k8s.clusters.agent", "load-balancer.admin", "vpc.publicAdmin",
+      "k8s.tunnelClusters.agent", "container-registry.images.pusher", "container-registry.images.puller"
     ])
     key_algorithm = optional(string, "RSA_2048")
   })

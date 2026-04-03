@@ -62,12 +62,12 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      # AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
       TF_VAR_adm_sa_key: ${{ secrets.YC_ADM_SA_KEY }}
-      YC_PREP_BACKEND_DB: ${{ fromJSON(vars.YC_PREP_BACKEND).db }}
-      YC_PREP_BACKEND_TABLE: ${{ fromJSON(vars.YC_PREP_BACKEND).table }}
-      YC_PREP_BACKEND_BUCKET: ${{ fromJSON(vars.YC_PREP_BACKEND).bucket }}
-      YC_PREP_BACKEND_KEY: ${{ fromJSON(vars.YC_PREP_BACKEND).key }}
+      YC_PREP_BACKEND_DB: ${{ fromJSON(secrets.YC_PREP_BACKEND).db }}
+      YC_PREP_BACKEND_TABLE: ${{ fromJSON(secrets.YC_PREP_BACKEND).table }}
+      YC_PREP_BACKEND_BUCKET: ${{ fromJSON(secrets.YC_PREP_BACKEND).bucket }}
+      YC_PREP_BACKEND_KEY: ${{ fromJSON(secrets.YC_PREP_BACKEND).key }}
 
     steps:
       - name: Clone repository on runner
@@ -152,12 +152,12 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      # AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
       TF_VAR_adm_sa_key: ${{ secrets.YC_ADM_SA_KEY }}
-      YC_PREP_BACKEND_DB: ${{ fromJSON(vars.YC_PREP_BACKEND).db }}
-      YC_PREP_BACKEND_TABLE: ${{ fromJSON(vars.YC_PREP_BACKEND).table }}
-      YC_PREP_BACKEND_BUCKET: ${{ fromJSON(vars.YC_PREP_BACKEND).bucket }}
-      YC_PREP_BACKEND_KEY: ${{ fromJSON(vars.YC_PREP_BACKEND).key }}
+      YC_PREP_BACKEND_DB: ${{ fromJSON(secrets.YC_PREP_BACKEND).db }}
+      YC_PREP_BACKEND_TABLE: ${{ fromJSON(secrets.YC_PREP_BACKEND).table }}
+      YC_PREP_BACKEND_BUCKET: ${{ fromJSON(secrets.YC_PREP_BACKEND).bucket }}
+      YC_PREP_BACKEND_KEY: ${{ fromJSON(secrets.YC_PREP_BACKEND).key }}
 
     environment: review_tfplan
 
@@ -232,12 +232,12 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      # AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
       TF_VAR_vm_user_name: ${{ secrets.VM_USER_NAME }}
       TF_VAR_pub_ssh_key: ${{ secrets.PUB_SSH_KEY }}
       TF_VAR_ssh_key_path: ${{ vars.SSH_KEY_PATH }}
       TF_VAR_ansible_inventory: ${{ vars.ANSIBLE_INVENTORY }}
-      TF_VAR_bastion_access: ${{ vars.BASTION_ACCESS }}
+      TF_VAR_bastion_access: ${{ secrets.BASTION_ACCESS }}
 
     steps:
       - name: Clone repository on runner
@@ -252,7 +252,7 @@ jobs:
             aws s3api head-object \
               --bucket "${{ fromJSON(vars.YC_INFRA_BUCKET).name }}" \
               --key "$key" \
-              --endpoint-url "${{ vars.TF_BACKEND_S3 }}" > /dev/null 2>&1 || \
+              --endpoint-url "$TF_BACKEND_S3" > /dev/null 2>&1 || \
               { echo "File $key not found. Run the Terraform yc-prep project."; exit 1; }
           }
 
@@ -280,10 +280,10 @@ jobs:
         run: |
           mkdir -p "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}"
           mkdir -p "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}"
-          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
-          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
-          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
-          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
 
       - name: Terraform init
         run: terraform init -input=false
@@ -345,12 +345,12 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      # AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
       TF_VAR_vm_user_name: ${{ secrets.VM_USER_NAME }}
       TF_VAR_pub_ssh_key: ${{ secrets.PUB_SSH_KEY }}
       TF_VAR_ssh_key_path: ${{ vars.SSH_KEY_PATH }}
       TF_VAR_ansible_inventory: ${{ vars.ANSIBLE_INVENTORY }}
-      TF_VAR_bastion_access: ${{ vars.BASTION_ACCESS }}
+      TF_VAR_bastion_access: ${{ secrets.BASTION_ACCESS }}
 
     steps:
       - name: Clone repository on runner
@@ -375,13 +375,13 @@ jobs:
           mkdir -p "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}"
           mkdir -p "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}"
           aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" \
-            "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
+            "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
           aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" \
-            "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
+            "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
           aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" \
-            "${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
+            "${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
           aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" \
-            "${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
+            "${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
 
       - name: Terraform init
         run: terraform init -input=false
@@ -401,7 +401,7 @@ jobs:
         with:
           name: terraform-infra-plan
 
-  k8s-cluster:
+  k8s:
     name: Deploy Kubernetes
     needs: infra-apply
     if: needs.infra-apply.result == 'success'
