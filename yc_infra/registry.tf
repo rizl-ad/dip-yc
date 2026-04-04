@@ -1,4 +1,4 @@
 module "container_registry" {
   source = "./registry"
-  name   = var.container_registry.name
+  name   = var.app_data.name
 }
