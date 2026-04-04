@@ -346,7 +346,7 @@ variable "ansible_inventory" {
   })
 }
 
-variable "container_registry" {
+variable "app_data" {
   type = object({
     dir_path     = string
     name         = string

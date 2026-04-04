@@ -238,6 +238,7 @@ jobs:
       TF_VAR_ssh_key_path: ${{ vars.SSH_KEY_PATH }}
       TF_VAR_ansible_inventory: ${{ vars.ANSIBLE_INVENTORY }}
       TF_VAR_bastion_access: ${{ secrets.BASTION_ACCESS }}
+      TF_VAR_app_data: ${{ vars.APP_DATA }}
 
     steps:
       - name: Clone repository on runner
@@ -351,6 +352,7 @@ jobs:
       TF_VAR_ssh_key_path: ${{ vars.SSH_KEY_PATH }}
       TF_VAR_ansible_inventory: ${{ vars.ANSIBLE_INVENTORY }}
       TF_VAR_bastion_access: ${{ secrets.BASTION_ACCESS }}
+      TF_VAR_app_data: ${{ vars.APP_DATA }}
 
     steps:
       - name: Clone repository on runner
@@ -383,6 +385,22 @@ jobs:
           aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" \
             "${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
 
+      - name: Generate token
+        id: set_secret_token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.SET_SECRET_APP_ID }}
+          private-key: ${{ secrets.SET_SECRET_APP_PRIVATE_KEY }}
+          repositories: dip-app
+
+      - name: Set secret in dip-app repo
+        env:
+          GH_TOKEN: ${{ steps.set_secret_token.outputs.token }}
+          SA_KEY_FILE_PATH: "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}"
+        run: |
+          cat "$SA_KEY_FILE_PATH" | gh secret set YC_INFRA_SA_KEY \
+            --repo "rizl-ad/dip-app" --body -
+
       - name: Terraform init
         run: terraform init -input=false
 
@@ -409,7 +427,7 @@ jobs:
 
     steps:
       - name: Generate token
-        id: generate_token
+        id: wf_call_token
         uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.REMOTE_WORKFLOW_CALL_APP_ID }}
@@ -422,6 +440,6 @@ jobs:
       - name: Remote workflow call
         uses: peter-evans/repository-dispatch@v4
         with:
-          token: ${{ steps.generate_token.outputs.token }}
+          token: ${{ steps.wf_call_token.outputs.token }}
           repository: rizl-ad/dip-k8s
           event-type: deploy-k8s

@@ -36,11 +36,11 @@ jobs:
         working-directory: ./yc_infra
 
     env:
-      TF_VAR_vm_user_name: ${{ vars.VM_USER_NAME }}
+      TF_VAR_vm_user_name: ${{ secrets.VM_USER_NAME }}
       TF_VAR_ssh_key_path: ${{ vars.SSH_KEY_PATH }}
       TF_VAR_pub_ssh_key: ${{ secrets.PUB_SSH_KEY }}
       TF_VAR_ansible_inventory: ${{ vars.ANSIBLE_INVENTORY }}
-      TF_VAR_bastion_access: ${{ vars.BASTION_ACCESS }}
+      TF_VAR_bastion_access: ${{ secrets.BASTION_ACCESS }}
 
     steps:
       - name: Clone repository
@@ -88,10 +88,10 @@ jobs:
 
     env:
       TF_VAR_adm_sa_key: ${{ secrets.YC_ADM_SA_KEY }}
-      YC_PREP_BACKEND_DB: ${{ fromJSON(vars.YC_PREP_BACKEND).db }}
-      YC_PREP_BACKEND_TABLE: ${{ fromJSON(vars.YC_PREP_BACKEND).table }}
-      YC_PREP_BACKEND_BUCKET: ${{ fromJSON(vars.YC_PREP_BACKEND).bucket }}
-      YC_PREP_BACKEND_KEY: ${{ fromJSON(vars.YC_PREP_BACKEND).key }}
+      YC_PREP_BACKEND_DB: ${{ fromJSON(secrets.YC_PREP_BACKEND).db }}
+      YC_PREP_BACKEND_TABLE: ${{ fromJSON(secrets.YC_PREP_BACKEND).table }}
+      YC_PREP_BACKEND_BUCKET: ${{ fromJSON(secrets.YC_PREP_BACKEND).bucket }}
+      YC_PREP_BACKEND_KEY: ${{ fromJSON(secrets.YC_PREP_BACKEND).key }}
 
     steps:
       - name: Clone repository
