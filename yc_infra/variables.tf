@@ -241,7 +241,7 @@ variable "k8s" {
       labels = optional(map(string), { k8s_node_role = "k8s_worker" })
       # public_ip = optional(bool, true)
       scale_policy = optional(object({
-        fixed_scale_size = optional(number, 1)
+        fixed_scale_size = optional(number, 2)
         # auto_scale = optional(object({
         #   type = optional(string, "REGIONAL")
         #   cpu_utilization_target = optional(number, 80)
@@ -260,8 +260,8 @@ variable "k8s" {
       }))
       instance_template = optional(object({
         resources = optional(object({
-          cores         = optional(number, 6)
-          memory        = optional(number, 6)
+          cores         = optional(number, 8)
+          memory        = optional(number, 8)
           core_fraction = optional(number, 100)
         }))
       }))
