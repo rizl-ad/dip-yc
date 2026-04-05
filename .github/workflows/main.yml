@@ -399,14 +399,19 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.set_secret_token.outputs.token }}
           # SA_KEY_FILE_PATH: "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}"
+          ANSIBLE_INVENTORY: ${{ vars.ANSIBLE_INVENTORY }}
+          TF_BACKEND_S3: ${{ vars.TF_BACKEND_S3 }}
+          YC_INFRA_BUCKET: ${{ vars.YC_INFRA_BUCKET }}
+          YC_INFRA_SA_KEY_FILE: ${{ vars.YC_INFRA_SA_KEY_FILE }}  # переменная с аттрибутами файла, не файл с ключами
+          APP_DATA: ${{ vars.APP_DATA }}
         run: |
-          echo "${{ vars.ANSIBLE_INVENTORY }}" | gh variable set ANSIBLE_INVENTORY --repo "rizl-ad/dip-k8s" --body -
-          echo "${{ vars.TF_BACKEND_S3 }}" | gh variable set TF_BACKEND_S3 --repo "rizl-ad/dip-k8s" --body -
-          echo "${{ vars.TF_BACKEND_S3 }}" | gh variable set TF_BACKEND_S3 --repo "rizl-ad/dip-app" --body -
-          echo "${{ vars.YC_INFRA_BUCKET }}" | gh variable set YC_INFRA_BUCKET --repo "rizl-ad/dip-k8s" --body -
-          echo "${{ vars.YC_INFRA_BUCKET }}" | gh variable set YC_INFRA_BUCKET --repo "rizl-ad/dip-app" --body -
-          echo "${{ vars.YC_INFRA_SA_KEY_FILE }}" | gh variable set YC_INFRA_SA_KEY_FILE --repo "rizl-ad/dip-k8s" --body -
-          echo "${{ vars.APP_DATA }}" | gh variable set APP_DATA --repo "rizl-ad/dip-app" --body -
+          gh variable set ANSIBLE_INVENTORY --repo "rizl-ad/dip-k8s" --body "$ANSIBLE_INVENTORY"
+          gh variable set TF_BACKEND_S3 --repo "rizl-ad/dip-k8s" --body "$TF_BACKEND_S3"
+          gh variable set TF_BACKEND_S3 --repo "rizl-ad/dip-app" --body "$TF_BACKEND_S3"
+          gh variable set YC_INFRA_BUCKET --repo "rizl-ad/dip-k8s" --body "$YC_INFRA_BUCKET"
+          gh variable set YC_INFRA_BUCKET --repo "rizl-ad/dip-app" --body "$YC_INFRA_BUCKET"
+          gh variable set YC_INFRA_SA_KEY_FILE --repo "rizl-ad/dip-k8s" --body "$YC_INFRA_SA_KEY_FILE"
+          gh variable set APP_DATA --repo "rizl-ad/dip-app" --body "$APP_DATA"
 
       - name: Set secret in dip-app repo
         env:
