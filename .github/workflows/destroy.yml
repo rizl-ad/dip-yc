@@ -26,6 +26,7 @@ env:
   TF_VAR_vars_file: ${{ vars.YC_INFRA_VARS_FILE }}
   TF_BACKEND_S3: ${{ vars.TF_BACKEND_S3 }}
 
+
 jobs:
   destroy-infra:
     name: Destroy YC-infra
@@ -36,6 +37,7 @@ jobs:
         working-directory: ./yc_infra
 
     env:
+      TF_VAR_app_data: ${{ vars.APP_DATA }}
       TF_VAR_vm_user_name: ${{ secrets.VM_USER_NAME }}
       TF_VAR_ssh_key_path: ${{ vars.SSH_KEY_PATH }}
       TF_VAR_pub_ssh_key: ${{ secrets.PUB_SSH_KEY }}
