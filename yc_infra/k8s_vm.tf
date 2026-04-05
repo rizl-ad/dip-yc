@@ -74,7 +74,9 @@ module "k8s_worker" {
   }
   instance_template = {
     boot_disk = {
-      initialize_params = {}
+      initialize_params = {
+        size = var.k8s.worker.instance_template.boot_disk.size
+      }
     }
     resources = {
       core_fraction = var.k8s.worker.instance_template.resources.core_fraction

@@ -259,9 +259,12 @@ variable "k8s" {
         # strategy = optional(string, "opportunistic")
       }))
       instance_template = optional(object({
+        boot_disk = optional(object({
+          size = optional(number, 20)
+        }))
         resources = optional(object({
-          cores         = optional(number, 8)
-          memory        = optional(number, 8)
+          cores         = optional(number, 6)
+          memory        = optional(number, 6)
           core_fraction = optional(number, 100)
         }))
       }))

@@ -6,13 +6,13 @@ on:
   workflow_dispatch:
     inputs:
       run_yc_prep:
-        description: Run YC-prep project
+        description: Enter "YES" to run YC-prep project
         required: false
-        default: 'false'
+        default: 'no'
       run_yc_infra:
-        description: Run YC-infra project
+        description: Enter "YES" to run YC-infra project
         required: false
-        default: 'false'
+        default: 'no'
 
 env:
   TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/terraform-plugin-cache
@@ -30,7 +30,6 @@ permissions:
   pull-requests: write
 
 jobs:
-
   detect-changes:
     runs-on: ubuntu-24.04
     outputs:
@@ -52,7 +51,7 @@ jobs:
     name: YC-prep project plan
     needs: detect-changes
     if: |
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_yc_prep == 'true') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_yc_prep == 'YES') ||
       (github.event_name == 'pull_request' && needs.detect-changes.outputs.yc-prep == 'true')
     runs-on: ubuntu-24.04
     defaults:
@@ -212,7 +211,7 @@ jobs:
       always() && needs.detect-changes.result == 'success' &&
       (needs.prepare-plan.result == 'success' || needs.prepare-plan.result == 'skipped') &&
       (
-        (github.event_name == 'workflow_dispatch' && github.event.inputs.run_yc_infra == 'true') ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.run_yc_infra == 'YES') ||
         (
           github.event_name == 'pull_request' &&
           (needs.detect-changes.outputs.yc-infra == 'true' || needs.detect-changes.outputs.yc-prep == 'true') &&
@@ -223,11 +222,6 @@ jobs:
     defaults:
       run:
         working-directory: ./yc_infra
-
-    # outputs:
-    #   tf_var_ssh_key_path: ${{ steps.repo_infra_vars.outputs.TF_VAR_ssh_key_path }}
-    #   tf_var_ansible_inventory: ${{ steps.repo_infra_vars.outputs.TF_VAR_ansible_inventory }}
-    #   tf_var_bastion_access: ${{ steps.repo_infra_vars.outputs.TF_VAR_bastion_access }}
     
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -398,7 +392,6 @@ jobs:
       - name: Set vars in dip-k8s, dip-app repo
         env:
           GH_TOKEN: ${{ steps.set_secret_token.outputs.token }}
-          # SA_KEY_FILE_PATH: "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}"
           ANSIBLE_INVENTORY: ${{ vars.ANSIBLE_INVENTORY }}
           TF_BACKEND_S3: ${{ vars.TF_BACKEND_S3 }}
           YC_INFRA_BUCKET: ${{ vars.YC_INFRA_BUCKET }}
