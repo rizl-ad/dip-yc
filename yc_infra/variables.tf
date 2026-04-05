@@ -294,6 +294,7 @@ variable "k8s" {
     worker = {
       deploy_policy = {}
       instance_template = {
+        boot_disk = {}
         resources = {}
       }
       health_check = {}
