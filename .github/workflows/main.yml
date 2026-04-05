@@ -433,9 +433,7 @@ jobs:
           app-id: ${{ secrets.REMOTE_WORKFLOW_CALL_APP_ID }}
           private-key: ${{ secrets.REMOTE_WORKFLOW_CALL_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-          repositories: |
-            dip-yc
-            dip-k8s
+          repositories: dip-k8s
 
       - name: Remote workflow call
         uses: peter-evans/repository-dispatch@v4
