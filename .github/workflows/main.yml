@@ -238,10 +238,9 @@ jobs:
       - name: Clone repository on runner
         uses: actions/checkout@v6
       
-      - name: Check required files
+      - name: Check and required files
         run: |
           set -euo pipefail
-
           check_file () {
             local key="$1"
             aws s3api head-object \
@@ -250,7 +249,6 @@ jobs:
               --endpoint-url "$TF_BACKEND_S3" > /dev/null 2>&1 || \
               { echo "File $key not found. Run the Terraform yc-prep project."; exit 1; }
           }
-
           check_file "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}"
           check_file "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}"
           check_file "${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}"
@@ -411,7 +409,9 @@ jobs:
           GH_TOKEN: ${{ steps.set_secret_token.outputs.token }}
           SA_KEY_FILE_PATH: "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}"
         run: |
-          cat "$SA_KEY_FILE_PATH" | gh secret set YC_INFRA_SA_KEY --repo "rizl-ad/dip-app" --body -
+          gh secret set YC_INFRA_SA_KEY --repo "rizl-ad/dip-app" < "$SA_KEY_FILE_PATH"
+
+       # cat "$SA_KEY_FILE_PATH" | gh secret set YC_INFRA_SA_KEY --repo "rizl-ad/dip-app" --body -
 
       - name: Terraform init
         run: terraform init -input=false
