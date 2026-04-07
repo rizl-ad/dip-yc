@@ -410,7 +410,6 @@ jobs:
           SA_KEY_FILE_PATH: "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}"
         run: |
           gh secret set YC_INFRA_SA_KEY --repo "rizl-ad/dip-app" < "$SA_KEY_FILE_PATH"
-
        # cat "$SA_KEY_FILE_PATH" | gh secret set YC_INFRA_SA_KEY --repo "rizl-ad/dip-app" --body -
 
       - name: Terraform init
