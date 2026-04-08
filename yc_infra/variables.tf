@@ -186,7 +186,7 @@ variable "k8s_service_lb" {
     healthcheck_name     = optional(string, "k8s-service-lb-healthcheck")
     healthcheck_port     = optional(number, 10250)
     listener_name        = optional(string, "k8s-service-lb-listener")
-    listener_port        = optional(number, 443)
+    listener_port        = optional(number, 80)
     listener_target_port = optional(number, 31280)
     # internal_ip_address = optional(string, "10.10.20.10")
     # type = optional(string, "internal")
