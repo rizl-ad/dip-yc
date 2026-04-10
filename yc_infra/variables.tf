@@ -359,3 +359,4 @@ variable "bucket" {
     versioning = bool
   })
 }
+
