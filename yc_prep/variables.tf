@@ -3,12 +3,12 @@ variable "cloud_id" {
 }
 
 variable "region" {
-  type = string
+  type    = string
   default = "ru-central1"
 }
 
 variable "default_zone" {
-  type = string
+  type    = string
   default = "ru-central1-a"
 }
 
@@ -17,7 +17,7 @@ variable "folder_id" {
 }
 
 variable "adm_sa_key" {
-  type = string
+  type      = string
   sensitive = true
 }
 
@@ -25,8 +25,8 @@ variable "sa" {
   type = object({
     name = optional(string, "diplom-sa")
     roles = optional(list(string), [
-      "editor", "container-registry.images.puller", "k8s.clusters.agent", 
-      "load-balancer.admin", "vpc.publicAdmin", "k8s.tunnelClusters.agent"
+      "editor", "k8s.clusters.agent", "load-balancer.admin", "vpc.publicAdmin",
+      "k8s.tunnelClusters.agent", "container-registry.images.pusher", "container-registry.images.puller"
     ])
     key_algorithm = optional(string, "RSA_2048")
   })
@@ -38,51 +38,51 @@ variable "sa" {
 
 variable "sa_key_file" {
   type = object({
-    dir_path = string
+    dir_path     = string
     content_type = string
-    name = string
+    name         = string
   })
   sensitive = true
 }
 
 variable "aws_access_profile" {
-  type = string
-  default =  "diplom"
+  type    = string
+  default = "diplom"
 }
 
 variable "aws_access_file" {
   type = object({
-    dir_path = string
+    dir_path     = string
     content_type = string
-    name = string
+    name         = string
   })
   sensitive = true
 }
 
 variable "symmetric_key" {
   type = object({
-    name = optional(string, "diplom-simmetric-key")
-    algorithm = optional(string, "AES_256")
+    name                = optional(string, "diplom-simmetric-key")
+    algorithm           = optional(string, "AES_256")
     deletion_protection = optional(bool, true)
-    rotation_period = optional(string, "2160h")
+    rotation_period     = optional(string, "2160h")
   })
   default = {}
 }
 
 variable "bucket" {
   type = object({
-    name = string
+    name       = string
     versioning = bool
   })
 }
 
 variable "ydb" {
   type = object({
-    deletion_protection = optional(bool, true)
-    name = optional(string, "diplom-ydb")
+    deletion_protection         = optional(bool, true)
+    name                        = optional(string, "diplom-ydb")
     enable_throttling_rcu_limit = optional(bool, true)
-    throttling_rcu_limit = optional(number, 10)
-    size = optional(number, 1)
+    throttling_rcu_limit        = optional(number, 10)
+    size                        = optional(number, 1)
   })
   default = {}
 }
@@ -96,23 +96,23 @@ variable "dynamodb_table" {
     }))
   })
   default = {
-    attribute = [ {} ]
+    attribute = [{}]
   }
 }
 
 variable "backend_file" {
   type = object({
-    dir_path = string
+    dir_path     = string
     content_type = string
-    name = string
+    name         = string
   })
 }
 
 variable "vars_file" {
   type = object({
-    dir_path = string
+    dir_path     = string
     content_type = string
-    name = string
+    name         = string
   })
 }
 

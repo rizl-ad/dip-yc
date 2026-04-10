@@ -6,16 +6,16 @@ on:
   workflow_dispatch:
     inputs:
       run_yc_prep:
-        description: Run YC-prep project
+        description: Enter "YES" to run YC-prep project
         required: false
-        default: 'false'
+        default: 'no'
       run_yc_infra:
-        description: Run YC-infra project
+        description: Enter "YES" to run YC-infra project
         required: false
-        default: 'false'
+        default: 'no'
 
 env:
-  TF_PLUGIN_CACHE_DIR: ${{ runner.temp }}/terraform-plugin-cache
+  TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/terraform-plugin-cache
   TF_VAR_cloud_id: ${{ vars.YC_CLOUD_ID }}
   TF_VAR_folder_id: ${{ vars.YC_FOLDER_ID }}
   TF_VAR_sa_key_file: ${{ vars.YC_INFRA_SA_KEY_FILE }}  # переменная с аттрибутами файла, не файл с ключами
@@ -30,15 +30,15 @@ permissions:
   pull-requests: write
 
 jobs:
-
   detect-changes:
     runs-on: ubuntu-24.04
     outputs:
       yc-prep: ${{ steps.filter.outputs.yc-prep }}
       yc-infra: ${{ steps.filter.outputs.yc-infra }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
+      - uses: actions/checkout@v6
+
+      - uses: dorny/paths-filter@v4
         id: filter
         with:
           filters: |
@@ -52,7 +52,7 @@ jobs:
     name: YC-prep project plan
     needs: detect-changes
     if: |
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_yc_prep == 'true') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_yc_prep == 'YES') ||
       (github.event_name == 'pull_request' && needs.detect-changes.outputs.yc-prep == 'true')
     runs-on: ubuntu-24.04
     defaults:
@@ -64,36 +64,37 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
       TF_VAR_adm_sa_key: ${{ secrets.YC_ADM_SA_KEY }}
-      YC_PREP_BACKEND_DB: ${{ fromJSON(vars.YC_PREP_BACKEND).db }}
-      YC_PREP_BACKEND_TABLE: ${{ fromJSON(vars.YC_PREP_BACKEND).table }}
-      YC_PREP_BACKEND_BUCKET: ${{ fromJSON(vars.YC_PREP_BACKEND).bucket }}
-      YC_PREP_BACKEND_KEY: ${{ fromJSON(vars.YC_PREP_BACKEND).key }}
+      YC_PREP_BACKEND_DB: ${{ fromJSON(secrets.YC_PREP_BACKEND).db }}
+      YC_PREP_BACKEND_TABLE: ${{ fromJSON(secrets.YC_PREP_BACKEND).table }}
+      YC_PREP_BACKEND_BUCKET: ${{ fromJSON(secrets.YC_PREP_BACKEND).bucket }}
+      YC_PREP_BACKEND_KEY: ${{ fromJSON(secrets.YC_PREP_BACKEND).key }}
 
     steps:
       - name: Clone repository on runner
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@v6
+      
       - name: Create plugin cache dir
         run: mkdir -p "${TF_PLUGIN_CACHE_DIR}"
 
       - name: Cache Terraform
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ env.TF_PLUGIN_CACHE_DIR }}
           key: ${{ runner.os }}-terraform-${{ hashFiles('**/.terraform.lock.hcl') }}
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: "1.13.0"
 
       - name: Terraform init
-        run: terraform init \
-          -backend-config="endpoint=${TF_BACKEND_S3}" \
-          -backend-config="dynamodb_endpoint=${YC_PREP_BACKEND_DB}" \
-          -backend-config="dynamodb_table=${YC_PREP_BACKEND_TABLE}" \
-          -backend-config="bucket=${YC_PREP_BACKEND_BUCKET}" \
-          -backend-config="key=${YC_PREP_BACKEND_KEY}" \
+        run: |
+          terraform init \
+          -backend-config="endpoint=$TF_BACKEND_S3" \
+          -backend-config="dynamodb_endpoint=$YC_PREP_BACKEND_DB" \
+          -backend-config="dynamodb_table=$YC_PREP_BACKEND_TABLE" \
+          -backend-config="bucket=$YC_PREP_BACKEND_BUCKET" \
+          -backend-config="key=$YC_PREP_BACKEND_KEY" \
           -input=false
 
       - name: Terraform format check
@@ -102,6 +103,14 @@ jobs:
       - name: Terraform validate
         run: terraform validate
 
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v6
+        with:
+          tflint_version: v0.61.0
+
+      - name: Run TFLint
+        run: tflint -f compact --recursive
+
       - name: Terraform plan
         id: prep_plan
         run: |
@@ -109,7 +118,7 @@ jobs:
           terraform show -no-color prep_tfplan > prep_plan.txt
 
       - name: Upload prepare plan
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: terraform-prep-plan
           path: yc_prep/prep_tfplan
@@ -117,11 +126,11 @@ jobs:
       
       - name: Comment PR with prepare plan
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
-            const prep_plan = fs.readFileSync('prep_plan.txt', 'utf8');
+            const prep_plan = fs.readFileSync('./yc_prep/prep_plan.txt', 'utf8');
             const body = `## Terraform Plan
 
             <details>
@@ -153,42 +162,43 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
       TF_VAR_adm_sa_key: ${{ secrets.YC_ADM_SA_KEY }}
-      YC_PREP_BACKEND_DB: ${{ fromJSON(vars.YC_PREP_BACKEND).db }}
-      YC_PREP_BACKEND_TABLE: ${{ fromJSON(vars.YC_PREP_BACKEND).table }}
-      YC_PREP_BACKEND_BUCKET: ${{ fromJSON(vars.YC_PREP_BACKEND).bucket }}
-      YC_PREP_BACKEND_KEY: ${{ fromJSON(vars.YC_PREP_BACKEND).key }}
+      YC_PREP_BACKEND_DB: ${{ fromJSON(secrets.YC_PREP_BACKEND).db }}
+      YC_PREP_BACKEND_TABLE: ${{ fromJSON(secrets.YC_PREP_BACKEND).table }}
+      YC_PREP_BACKEND_BUCKET: ${{ fromJSON(secrets.YC_PREP_BACKEND).bucket }}
+      YC_PREP_BACKEND_KEY: ${{ fromJSON(secrets.YC_PREP_BACKEND).key }}
 
     environment: review_tfplan
 
     steps:
       - name: Clone repository on runner
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Create plugin cache dir
         run: mkdir -p "${TF_PLUGIN_CACHE_DIR}"
 
       - name: Cache Terraform
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ env.TF_PLUGIN_CACHE_DIR }}
           key: ${{ runner.os }}-terraform-${{ hashFiles('**/.terraform.lock.hcl') }}
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: "1.13.0"
 
       - name: Terraform init
-        run: terraform init \
-          -backend-config="endpoint=${TF_BACKEND_S3}" \
-          -backend-config="dynamodb_endpoint=${YC_PREP_BACKEND_DB}" \
-          -backend-config="dynamodb_table=${YC_PREP_BACKEND_TABLE}" \
-          -backend-config="bucket=${YC_PREP_BACKEND_BUCKET}" \
-          -backend-config="key=${YC_PREP_BACKEND_KEY}" \
+        run: |
+          terraform init \
+          -backend-config="endpoint=$TF_BACKEND_S3" \
+          -backend-config="dynamodb_endpoint=$YC_PREP_BACKEND_DB" \
+          -backend-config="dynamodb_table=$YC_PREP_BACKEND_TABLE" \
+          -backend-config="bucket=$YC_PREP_BACKEND_BUCKET" \
+          -backend-config="key=$YC_PREP_BACKEND_KEY" \
           -input=false
 
       - name: Download prepare plan
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: terraform-prep-plan
           path: yc_prep
@@ -198,7 +208,7 @@ jobs:
 
       - name: Delete prepare tfplan 
         if: always()
-        uses: geekyeggo/delete-artifact@v5
+        uses: geekyeggo/delete-artifact@v6
         with:
           name: terraform-prep-plan
 
@@ -207,9 +217,10 @@ jobs:
     name: YC-infra project plan
     needs: [ detect-changes, prepare-apply ]
     if: |
-      always() && needs.detect-changes.result == 'success' && 
+      always() && needs.detect-changes.result == 'success' &&
+      (needs.prepare-plan.result == 'success' || needs.prepare-plan.result == 'skipped') &&
       (
-        (github.event_name == 'workflow_dispatch' && github.event.inputs.run_yc_infra == 'true') ||
+        (github.event_name == 'workflow_dispatch' && github.event.inputs.run_yc_infra == 'YES') ||
         (
           github.event_name == 'pull_request' &&
           (needs.detect-changes.outputs.yc-infra == 'true' || needs.detect-changes.outputs.yc-prep == 'true') &&
@@ -225,41 +236,45 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      TF_VAR_vm_user_name: ${{ secrets.VM_USER_NAME }}
+      TF_VAR_pub_ssh_key: ${{ secrets.PUB_SSH_KEY }}
+      TF_VAR_ssh_key_path: ${{ vars.SSH_KEY_PATH }}
+      TF_VAR_ansible_inventory: ${{ vars.ANSIBLE_INVENTORY }}
+      TF_VAR_bastion_access: ${{ secrets.BASTION_ACCESS }}
+      TF_VAR_app_data: ${{ vars.APP_DATA }}
 
     steps:
-      - name: Check required files
+      - name: Clone repository on runner
+        uses: actions/checkout@v6
+      
+      - name: Check and required files
         run: |
           set -euo pipefail
-
           check_file () {
             local key="$1"
             aws s3api head-object \
               --bucket "${{ fromJSON(vars.YC_INFRA_BUCKET).name }}" \
               --key "$key" \
-              --endpoint-url "${{ vars.TF_BACKEND_S3 }}" > /dev/null 2>&1 || \
+              --endpoint-url "$TF_BACKEND_S3" > /dev/null 2>&1 || \
               { echo "File $key not found. Run the Terraform yc-prep project."; exit 1; }
           }
-
           check_file "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}"
           check_file "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}"
           check_file "${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}"
           check_file "${{ fromJSON(vars.YC_INFRA_VARS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}"
           echo "The required files were found."
 
-      - name: Clone repository on runner
-        uses: actions/checkout@v4
-
       - name: Create plugin cache dir
         run: mkdir -p "${TF_PLUGIN_CACHE_DIR}"
 
       - name: Cache Terraform
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ env.TF_PLUGIN_CACHE_DIR }}
           key: ${{ runner.os }}-terraform-${{ hashFiles('**/.terraform.lock.hcl') }}
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: "1.13.0"
 
@@ -267,10 +282,10 @@ jobs:
         run: |
           mkdir -p "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}"
           mkdir -p "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}"
-          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
-          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
-          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
-          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
 
       - name: Terraform init
         run: terraform init -input=false
@@ -280,6 +295,14 @@ jobs:
       
       - name: Terraform validate
         run: terraform validate
+      
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v6
+        with:
+          tflint_version: v0.61.0
+
+      - name: Run TFLint
+        run: tflint -f compact --recursive
 
       - name: Terraform plan
         id: infra_plan
@@ -288,7 +311,7 @@ jobs:
           terraform show -no-color infra_tfplan > infra_plan.txt
 
       - name: Upload Plan
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: terraform-infra-plan
           path: yc_infra/infra_tfplan
@@ -296,11 +319,11 @@ jobs:
       
       - name: Comment PR with infrastructure plan
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
-            const infra_plan = fs.readFileSync('infra_plan.txt', 'utf8');
+            const infra_plan = fs.readFileSync('./yc_infra/infra_plan.txt', 'utf8');
             const body = `## Terraform Plan
 
             <details>
@@ -333,22 +356,28 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+      TF_VAR_vm_user_name: ${{ secrets.VM_USER_NAME }}
+      TF_VAR_pub_ssh_key: ${{ secrets.PUB_SSH_KEY }}
+      TF_VAR_ssh_key_path: ${{ vars.SSH_KEY_PATH }}
+      TF_VAR_ansible_inventory: ${{ vars.ANSIBLE_INVENTORY }}
+      TF_VAR_bastion_access: ${{ secrets.BASTION_ACCESS }}
+      TF_VAR_app_data: ${{ vars.APP_DATA }}
 
     steps:
       - name: Clone repository on runner
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Create plugin cache dir
         run: mkdir -p "${TF_PLUGIN_CACHE_DIR}"
 
       - name: Cache Terraform
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ env.TF_PLUGIN_CACHE_DIR }}
           key: ${{ runner.os }}-terraform-${{ hashFiles('**/.terraform.lock.hcl') }}
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: "1.13.0"
 
@@ -356,16 +385,54 @@ jobs:
         run: |
           mkdir -p "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}"
           mkdir -p "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}"
-          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
-          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
-          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
-          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" "${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" \
+            "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" \
+            "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" \
+            "${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" \
+            "${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" --endpoint-url="$TF_BACKEND_S3"
+
+      - name: Generate token
+        id: set_secret_token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.SET_SECRET_APP_ID }}
+          private-key: ${{ secrets.SET_SECRET_APP_PRIVATE_KEY }}
+          repositories: |
+            dip-k8s
+            dip-app
+      
+      - name: Set vars in dip-k8s, dip-app repo
+        env:
+          GH_TOKEN: ${{ steps.set_secret_token.outputs.token }}
+          ANSIBLE_INVENTORY: ${{ vars.ANSIBLE_INVENTORY }}
+          TF_BACKEND_S3: ${{ vars.TF_BACKEND_S3 }}
+          YC_INFRA_BUCKET: ${{ vars.YC_INFRA_BUCKET }}
+          YC_INFRA_SA_KEY_FILE: ${{ vars.YC_INFRA_SA_KEY_FILE }}  # переменная с аттрибутами файла, не файл с ключами
+          APP_DATA: ${{ vars.APP_DATA }}
+        run: |
+          gh variable set ANSIBLE_INVENTORY --repo "rizl-ad/dip-k8s" --body "$ANSIBLE_INVENTORY"
+          gh variable set TF_BACKEND_S3 --repo "rizl-ad/dip-k8s" --body "$TF_BACKEND_S3"
+          gh variable set TF_BACKEND_S3 --repo "rizl-ad/dip-app" --body "$TF_BACKEND_S3"
+          gh variable set YC_INFRA_BUCKET --repo "rizl-ad/dip-k8s" --body "$YC_INFRA_BUCKET"
+          gh variable set YC_INFRA_BUCKET --repo "rizl-ad/dip-app" --body "$YC_INFRA_BUCKET"
+          gh variable set YC_INFRA_SA_KEY_FILE --repo "rizl-ad/dip-k8s" --body "$YC_INFRA_SA_KEY_FILE"
+          gh variable set APP_DATA --repo "rizl-ad/dip-app" --body "$APP_DATA"
+
+      - name: Set secret in dip-app repo
+        env:
+          GH_TOKEN: ${{ steps.set_secret_token.outputs.token }}
+          SA_KEY_FILE_PATH: "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}"
+        run: |
+          gh secret set YC_INFRA_SA_KEY --repo "rizl-ad/dip-app" < "$SA_KEY_FILE_PATH"
 
       - name: Terraform init
         run: terraform init -input=false
 
       - name: Download infrastructure plan
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: terraform-infra-plan
           path: yc_infra
@@ -375,6 +442,29 @@ jobs:
 
       - name: Delete infrastructure tfplan
         if: always()
-        uses: geekyeggo/delete-artifact@v5
+        uses: geekyeggo/delete-artifact@v6
         with:
           name: terraform-infra-plan
+
+  k8s:
+    name: Deploy Kubernetes
+    needs: infra-apply
+    if: needs.infra-apply.result == 'success'
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Generate token
+        id: wf_call_token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.REMOTE_WORKFLOW_CALL_APP_ID }}
+          private-key: ${{ secrets.REMOTE_WORKFLOW_CALL_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: dip-k8s
+
+      - name: Remote workflow call
+        uses: peter-evans/repository-dispatch@v4
+        with:
+          token: ${{ steps.wf_call_token.outputs.token }}
+          repository: rizl-ad/dip-k8s
+          event-type: deploy-k8s

@@ -6,7 +6,7 @@ all:
 %{ if global_vars != null ~}
   vars:
 %{ for key, value in global_vars ~}
-    ${key}: "${value}"
+    ${key}: ${value}
 %{ endfor ~}
 %{ endif ~}
 

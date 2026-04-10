@@ -1,0 +1,116 @@
+name: Destroy YC infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_destroy:
+        description: 'Enter "DESTROY" to confirm deletion'
+        required: true
+        default: 'no destroy'
+      destroy_prep:
+        description: 'Destroy yc-prep project'
+        type: boolean
+        default: false
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/terraform-plugin-cache
+  TF_VAR_cloud_id: ${{ vars.YC_CLOUD_ID }}
+  TF_VAR_folder_id: ${{ vars.YC_FOLDER_ID }}
+  TF_VAR_sa_key_file: ${{ vars.YC_INFRA_SA_KEY_FILE }}  # переменная с аттрибутами файла, не файл с ключами
+  TF_VAR_aws_access_file: ${{ vars.YC_INFRA_AWS_ACCESS_FILE }}  # переменная с аттрибутами файла, не файл с ключами
+  TF_VAR_bucket: ${{ vars.YC_INFRA_BUCKET }}
+  TF_VAR_backend_file: ${{ vars.YC_INFRA_BACKEND_FILE }}
+  TF_VAR_vars_file: ${{ vars.YC_INFRA_VARS_FILE }}
+  TF_BACKEND_S3: ${{ vars.TF_BACKEND_S3 }}
+
+
+jobs:
+  destroy-infra:
+    name: Destroy YC-infra
+    if: github.event.inputs.confirm_destroy == 'DESTROY'
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ./yc_infra
+
+    env:
+      TF_VAR_app_data: ${{ vars.APP_DATA }}
+      TF_VAR_vm_user_name: ${{ secrets.VM_USER_NAME }}
+      TF_VAR_ssh_key_path: ${{ vars.SSH_KEY_PATH }}
+      TF_VAR_pub_ssh_key: ${{ secrets.PUB_SSH_KEY }}
+      TF_VAR_ansible_inventory: ${{ vars.ANSIBLE_INVENTORY }}
+      TF_VAR_bastion_access: ${{ secrets.BASTION_ACCESS }}
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+
+      - name: Create plugin cache dir
+        run: mkdir -p "${TF_PLUGIN_CACHE_DIR}"
+
+      - name: Download infrastructure project configs files
+        run: |
+          mkdir -p "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}"
+          mkdir -p "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" \
+            "${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_SA_KEY_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" \
+            "${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_AWS_ACCESS_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" \
+            "${{ fromJSON(vars.YC_INFRA_BACKEND_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
+          aws s3 cp "s3://${{ fromJSON(vars.YC_INFRA_BUCKET).name }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).dir_path }}/${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" \
+            "${{ fromJSON(vars.YC_INFRA_VARS_FILE).name }}" --endpoint-url="${{ vars.TF_BACKEND_S3 }}"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.13.0"
+
+      - name: Terraform init
+        run: terraform init -input=false
+
+      - name: Terraform destroy
+        run: terraform destroy -auto-approve
+
+  destroy-prep:
+    name: Destroy YC-prep
+    needs: destroy-infra
+    if: |
+      always() && 
+      github.event.inputs.confirm_destroy == 'DESTROY' && 
+      github.event.inputs.destroy_prep == 'true' &&
+      needs.destroy-infra.result == 'success'
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ./yc_prep
+
+    env:
+      TF_VAR_adm_sa_key: ${{ secrets.YC_ADM_SA_KEY }}
+      YC_PREP_BACKEND_DB: ${{ fromJSON(secrets.YC_PREP_BACKEND).db }}
+      YC_PREP_BACKEND_TABLE: ${{ fromJSON(secrets.YC_PREP_BACKEND).table }}
+      YC_PREP_BACKEND_BUCKET: ${{ fromJSON(secrets.YC_PREP_BACKEND).bucket }}
+      YC_PREP_BACKEND_KEY: ${{ fromJSON(secrets.YC_PREP_BACKEND).key }}
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform init
+        run: |
+          terraform init \
+            -backend-config="endpoint=${TF_BACKEND_S3}" \
+            -backend-config="dynamodb_endpoint=${YC_PREP_BACKEND_DB}" \
+            -backend-config="dynamodb_table=${YC_PREP_BACKEND_TABLE}" \
+            -backend-config="bucket=${YC_PREP_BACKEND_BUCKET}" \
+            -backend-config="key=${YC_PREP_BACKEND_KEY}" \
+            -input=false
+
+      - name: Terraform destroy
+        run: terraform destroy -auto-approve

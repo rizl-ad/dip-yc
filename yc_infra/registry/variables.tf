@@ -1,10 +1,10 @@
 variable "folder_id" {
-  type = string
+  type    = string
   default = null
 }
 
 variable "labels" {
-  type = map(string)
+  type    = map(string)
   default = null
 }
 
@@ -14,6 +14,6 @@ variable "name" {
 
 
 variable "registry_id" {
-  type = string
+  type    = string
   default = null
 }

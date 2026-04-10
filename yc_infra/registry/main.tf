@@ -1,7 +1,7 @@
 resource "yandex_container_registry" "container_registry" {
-  folder_id = var.folder_id
-  labels = var.labels
-  name = var.name
+  folder_id   = var.folder_id
+  labels      = var.labels
+  name        = var.name
   registry_id = var.registry_id
 }
 

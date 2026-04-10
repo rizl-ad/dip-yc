@@ -1,15 +1,15 @@
 variable "description" {
-  type = string
+  type    = string
   default = null
 }
 
 variable "folder_id" {
-  type = string
+  type    = string
   default = null
 }
 
 variable "labels" {
-  type = map(string)
+  type    = map(string)
   default = null
 }
 
@@ -24,7 +24,7 @@ variable "network_id" {
 variable "static_route" {
   type = list(object({
     destination_prefix = optional(string)
-    gateway_id = optional(string)
-    next_hop_address = optional(string)
+    gateway_id         = optional(string)
+    next_hop_address   = optional(string)
   }))
 }

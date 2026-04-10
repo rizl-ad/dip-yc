@@ -5,9 +5,9 @@ variable "network_id" {
 variable "subnets" {
   type = list(
     object({
-      name = string,
-      zone = string,
-      v4_cidr = list(string),
+      name           = string,
+      zone           = string,
+      v4_cidr        = list(string),
       route_table_id = string
     })
   )

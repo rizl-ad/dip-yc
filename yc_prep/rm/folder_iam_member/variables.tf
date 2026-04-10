@@ -11,6 +11,6 @@ variable "role" {
 }
 
 variable "sleep_after" {
-  type = number
+  type    = number
   default = null
 }

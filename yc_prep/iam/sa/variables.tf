@@ -1,15 +1,15 @@
 variable "description" {
-  type = string
+  type    = string
   default = null
 }
 
 variable "folder_id" {
-  type = string
+  type    = string
   default = null
 }
 
 variable "labels" {
-  type = map(string)
+  type    = map(string)
   default = null
 }
 
@@ -18,6 +18,6 @@ variable "name" {
 }
 
 variable "service_account_id" {
-  type = string
+  type    = string
   default = null
 }
