@@ -3,11 +3,6 @@ variable "vm_user_name" {
   sensitive = true
 }
 
-variable "ssh_key_path" {
-  type      = string
-  sensitive = true
-}
-
 variable "pub_ssh_key" {
   type      = string
   sensitive = true

@@ -15,7 +15,6 @@ module "ansible_inventory_file" {
     "${path.root}/tftpl/inventory.tftpl", {
       global_vars = {
         ansible_user = var.vm_user_name
-        # ssh_key_path                = var.ssh_key_path
         ansible_connection          = var.ansible_inventory.connection_type
         apiserver_advertise_address = local.k8s_first_master_ip
         pod_network_cidr            = var.k8s.pod_network_cidr
