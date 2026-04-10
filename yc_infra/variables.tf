@@ -221,9 +221,9 @@ variable "k8s" {
       }))
       instance_template = optional(object({
         resources = optional(object({
-          cores         = optional(number, 4)
-          memory        = optional(number, 4)
-          core_fraction = optional(number, 100)
+          cores         = optional(number, 2)
+          memory        = optional(number, 2)
+          core_fraction = optional(number, 20)
         }))
       }))
       health_check = optional(object({
@@ -263,9 +263,9 @@ variable "k8s" {
           size = optional(number, 20)
         }))
         resources = optional(object({
-          cores         = optional(number, 6)
-          memory        = optional(number, 6)
-          core_fraction = optional(number, 100)
+          cores         = optional(number, 2)
+          memory        = optional(number, 2)
+          core_fraction = optional(number, 20)
         }))
       }))
       health_check = optional(object({
@@ -364,11 +364,3 @@ variable "bucket" {
     versioning = bool
   })
 }
-
-# variable "ansible_playbook" {
-#   type = object({
-#     requirements_file_path = optional(string, "../ansible/requirements.yml")
-#     playbook_file_path = optional(string, "../ansible/main.yml")
-#   })
-#   default = {}
-# }
