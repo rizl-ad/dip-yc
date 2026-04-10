@@ -103,13 +103,12 @@ jobs:
       - name: Terraform validate
         run: terraform validate
 
-      - uses: terraform-linters/setup-tflint@v6
-        name: Setup TFLint
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v6
         with:
           tflint_version: v0.61.0
 
       - name: Run TFLint
-        working-directory: ./yc_prep
         run: tflint -f compact --recursive
 
       - name: Terraform plan
@@ -297,13 +296,12 @@ jobs:
       - name: Terraform validate
         run: terraform validate
       
-      - uses: terraform-linters/setup-tflint@v6
-        name: Setup TFLint
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v6
         with:
           tflint_version: v0.61.0
 
       - name: Run TFLint
-        working-directory: ./yc_prep
         run: tflint -f compact --recursive
 
       - name: Terraform plan
